@@ -3,3 +3,4 @@
   become: yes
   roles:
     - change_hostname
+    - install_package
