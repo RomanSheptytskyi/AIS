@@ -1,14 +1,18 @@
-resource "virtualbox_vm" "example" {
-  name  = "Roman"
-  image = "https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-vagrant.box"
+provider "aws" {
+  region = var.region
+}
 
-  memory     = "1024 mib"
-  cpus       = "1"
-  boot_order = ["disk"]
+resource "aws_instance" "roman" {
+  count         = 2
+  ami           = lookup(var.ec2_ami, var.region)
+  instance_type = var.instance_type
 
-  network_adapter {
-    type           = "bridged"
-    host_interface = "Realtek PCIe GbE Family Controller"
+  tags = {
+    Name = "roman-${count.index + 1}"
   }
 }
 
+resource "local_file" "tf_ip" {
+  content  = "[ALL]\n${aws_instance.roman[0].public_ip} ansible_ssh_user=ubuntu"
+  filename = "${path.module}/inventory"
+}
